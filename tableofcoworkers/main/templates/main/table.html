@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таблица сотрудников</title>
+    <script src="https://api.bitrix24.com/api/v1/"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-family: Arial, sans-serif;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .call-count {
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .user-link {
+            color: #0066cc;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .user-link:hover {
+            text-decoration: underline;
+            color: #004499;
+        }
+    </style>
+</head>
+<body>
+    <h1>Таблица сотрудников</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Имя</th>
+                <th>Фамилия</th>
+                <th>Количество звонков (>60 сек)</th>
+                <th>Руководители</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users_data %}
+            <tr>
+                <td>
+                    <a class="user-link" data-user-id="{{ user.id }}">
+                        {{ user.first_name|default:"Не указано" }}
+                    </a>
+                </td>
+                <td>
+                    <a class="user-link" data-user-id="{{ user.id }}">
+                        {{ user.last_name|default:"Не указано" }}
+                    </a>
+                </td>
+                <td class="call-count">{{ user.call_count }}</td>
+                <td>
+                    {% if user.supervisors %}
+                        {% for supervisor in user.supervisors %}
+                            {{ supervisor }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        Нет руководителя
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center;">Нет данных для отображения</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        BX24.init(function () {
+            const links = document.querySelectorAll(".user-link");
+            links.forEach(function (link) {
+                link.onclick = function () {
+                    const userId = this.dataset.userId;
+                    BX24.openPath("/company/personal/user/" + userId + "/");
+                };
+            });
+        });
+    </script>
+    <a href="{% url 'create_call' %}">Сгенерировать звонок</a>
+</body>
+</html>
